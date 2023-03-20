@@ -1,0 +1,28 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+header {
+    width: 100%;
+    height: auto;
+    text-align: center;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+textarea {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+form {
+    margin-bottom: 20px;
+}

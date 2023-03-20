@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Localization Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body class="bg-gray-100 h-full">
+<!--
+  This example requires updating your template:
+
+  ```
+  <html class="h-full bg-gray-100">
+  <body class="h-full">
+  ```
+-->
+<div class="min-h-full">
+  <nav class="bg-gray-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <div class="hidden md:block">
+          <div class="ml-4 flex items-center md:ml-6">
+          </div>
+        </div>
+        <div class="-mr-2 flex md:hidden">
+          <!-- Mobile menu button -->
+          <button type="button" class="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" aria-controls="mobile-menu" aria-expanded="false">
+            <span class="sr-only">Open main menu</span>
+            <!-- Menu open: "hidden", Menu closed: "block" -->
+            <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+            <!-- Menu open: "block", Menu closed: "hidden" -->
+            <svg class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile menu, show/hide based on menu state. -->
+    <div class="md:hidden" id="mobile-menu">
+      <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+        <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
+        <a href="#" class="bg-gray-900 text-white block rounded-md px-3 py-2 text-base font-medium" aria-current="page">App</a>
+
+        <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Examples</a>
+
+        <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Team</a>
+
+        <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Reports</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="bg-white shadow">
+    <div class="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">ProtLocFinder </h1>
+    </div>
+  </header>
+  <main>
+    <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+      <div class="container mx-auto px-4">
+        <div class="my-10">
+            <h1 class="text-4xl font-bold text-center">Protein Localization Prediction</h1>
+            <p class="text-center text-lg mt-4">This tool is designed for protein sequence localization and is powered by the Meta ESM model.</p>
+        </div>
+        <div class="bg-white shadow-lg rounded-lg p-8">
+            <label for="sequence" class="block text-sm font-medium leading-6 text-gray-900">Protein Sequence:</label>
+            <form action="/" method="post" enctype="multipart/form-data">
+              <div class="relative mt-2 rounded-md shadow-sm">
+                  <input type="text" name="sequence" id="sequence" class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="SGDNTLSITKGEKLRVLGYNQNGEWSEVRSKNGQGWVPSNYITPVNSLEKHSWYHGPVSR">
+                  <div class="flex justify-center">
+                      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Predict</button>
+                  </div>
+              </div>
+            </form>
+        </div>
+
+{% if plot %}
+<div class="my-10">
+    <h2 class="text-2xl font-bold text-center mb-4">Prediction Results:</h2>
+    <div class="flex flex-wrap justify-center">
+        <div id="pie" class="w-full sm:w-1/2"></div>
+        <div id="table" class="w-full sm:w-1/2"></div>
+    </div>
+    <script>
+        let plotData = JSON.parse('{{ plot|safe }}');
+        Plotly.newPlot('pie', plotData.data, plotData.layout);
+
+      let tableData = {
+  type: 'table',
+  header: {
+    values: [["Name"], ["Probability"]],
+    align: "center",
+    line: {width: 1, color: 'black'},
+    fill: {color: "grey"},
+    font: {family: "Arial", size: 14, color: "white"}
+  },
+  cells: {
+    values: [
+      [
+        {% for label, prob in prob_table %}
+          "{{ label }}",
+        {% endfor %}
+      ],
+      [
+        {% for label, prob in prob_table %}
+          {{ prob|round(4) }},
+        {% endfor %}
+      ]
+    ],
+    align: "center",
+    line: {color: "black", width: 1},
+    font: {family: "Arial", size: 12, color: "black"},
+    height: 30
+  },
+  columnwidth: [150, 150],
+  columnorder: [0, 1],
+  transpose: true,
+};
+
+let tableLayout = {
+  margin: {
+    l: 10,
+    r: 10,
+    b: 30,
+    t: 60,
+    pad: 0
+  },
+  width: 500,
+  height: 450,
+};
+
+
+        Plotly.newPlot('table', [tableData], tableLayout);
+    </script>
+</div>
+{% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
